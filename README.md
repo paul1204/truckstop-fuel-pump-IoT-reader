@@ -4,8 +4,8 @@ Flask app to read gas tank status from Arduino via serial.
 
 ## Setup
 
-1. **Install:** `pip install Flask pyserial`
-2. **Configure:** Set `PORT` in `app.py` (e.g., `COM3` or `/dev/ttyUSB0`). 
+1. **Install:** `pip install -r requirements.txt`
+2. **Configure:** Set `PORT` in `app.py` (e.g., `COM3` or `/dev/ttyUSB0`).
 3. **Run:** `python app.py`
 
 ## API
