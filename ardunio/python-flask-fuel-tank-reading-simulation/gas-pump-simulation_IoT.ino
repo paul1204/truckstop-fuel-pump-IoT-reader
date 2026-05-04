@@ -127,6 +127,14 @@ class FuelPump {
       _lastUpdate = millis();
     }
 
+    void sendStatus() {
+      Serial.print("{");
+      Serial.print("\"pump\":\"");      Serial.print(_name);      Serial.print("\"");
+      Serial.print(",\"status\":\"ONLINE\"");
+      Serial.print("}");
+      Serial.println();
+    }
+
     void update(unsigned long currentTime) {
       if (currentTime - _lastUpdate >= _updateInterval) {
         _lastUpdate = currentTime;
@@ -189,6 +197,8 @@ void loop() {
       Diesel.sendManualJson("REQUEST_SUCCESS");
       Regular.sendManualJson("REQUEST_SUCCESS");
       Premium.sendManualJson("REQUEST_SUCCESS");
+      DieselPump.sendStatus();
+      GasPump.sendStatus();
     }
   }
 }

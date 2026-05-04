@@ -46,14 +46,14 @@ def get_tank_status():
         
         results = []
         start_time = time.time()
-        timeout = 2  # Wait up to 2 seconds for all 3 tank responses
+        timeout = 2  # Wait up to 2 seconds for all 5 responses
         
         while len(results) < 3 and (time.time() - start_time) < timeout:
             line = ser.readline().decode('utf-8').strip()
             if line:
                 try:
                     data = json.loads(line)
-                    # Only append if it's a tank status message, not a pump message
+                    # Only accept tank status messages
                     if 'tank' in data and 'gallons' in data:
                         results.append(data)
                     else:
@@ -62,10 +62,48 @@ def get_tank_status():
                     print(f"Ignored invalid JSON: {line}")
 
         if results:
-            print(f"Sending to frontend: {json.dumps(results, indent=2)}")
+            print(f"Sending tanks to frontend: {json.dumps(results, indent=2)}")
             return jsonify({"status": "success", "data": results}), 200
         else:
             return jsonify({"status": "error", "message": "Arduino did not respond with tank data"}), 408
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/pump-status', methods=['GET', 'OPTIONS'])
+def get_pump_status():
+    if request.method == 'OPTIONS':
+        return '', 204
+    global ser
+    if not ser or not ser.is_open:
+        return jsonify({"status": "error", "message": "Serial connection unavailable"}), 500
+
+    try:
+        ser.reset_input_buffer()
+        ser.write(b'R')
+        
+        results = []
+        start_time = time.time()
+        timeout = 2  # Wait up to 2 seconds for all 5 responses
+        
+        while len(results) < 2 and (time.time() - start_time) < timeout:
+            line = ser.readline().decode('utf-8').strip()
+            if line:
+                try:
+                    data = json.loads(line)
+                    # Only accept pump status messages
+                    if 'pump' in data and 'status' in data:
+                        results.append(data)
+                    else:
+                        print(f"Ignored non-pump message: {line}")
+                except json.JSONDecodeError:
+                    print(f"Ignored invalid JSON: {line}")
+
+        if results:
+            print(f"Sending pumps to frontend: {json.dumps(results, indent=2)}")
+            return jsonify({"status": "success", "data": results}), 200
+        else:
+            return jsonify({"status": "error", "message": "Arduino did not respond with pump data"}), 408
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
